@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Grow Island</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grow Island">
+<meta name="theme-color" content="#7ec8e3">
+<style>
+  :root { --sky:#7ec8e3; --sea:#2f8fc9; --grass:#8fd14f; --dirt:#b98a4e; --ink:#2b2b2b; --panel:#fff8dc; --accent:#e4572e; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; -webkit-user-select:none; }
+  html,body { margin:0; height:100%; overflow:hidden; background:var(--sea); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); touch-action:manipulation; overscroll-behavior:none; }
+  #app { display:flex; flex-direction:column; height:100%; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom); background:linear-gradient(var(--sky) 0%, #bfe8f5 45%, var(--sea) 45%, #1d6fa8 100%); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px 4px; font-weight:800; }
+  header h1 { font-size:20px; margin:0; letter-spacing:.5px; text-shadow:0 2px 0 #fff8; }
+  #moves { background:var(--panel); border:2px solid var(--ink); border-radius:12px; padding:3px 10px; font-size:14px; }
+  #scene { flex:1; min-height:0; position:relative; margin:4px 10px; display:flex; align-items:center; }
+  #scene svg { width:100%; height:auto; max-height:100%; display:block; }
+  .prop { transform-box:view-box; transform-origin:0 0; transition:transform .35s cubic-bezier(.3,1.6,.5,1); cursor:pointer; }
+  .prop text { font-size:44px; text-anchor:middle; dominant-baseline:central; }
+  .pop { animation:pop .45s ease-out; }
+  @keyframes pop { 0%{filter:brightness(1.8)} 100%{filter:none} }
+  #hint { position:absolute; left:50%; bottom:6px; transform:translateX(-50%); max-width:92%; background:#000b; color:#fff; padding:8px 14px; border-radius:14px; font-size:15px; font-weight:700; text-align:center; opacity:0; transition:opacity .2s; pointer-events:none; }
+  #hint.show { opacity:1; }
+  #tray { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:8px 8px 6px; background:var(--panel); border-top:3px solid var(--ink); }
+  .btn { position:relative; background:#fff; border:3px solid var(--ink); border-radius:12px; padding:2px 0 3px; text-align:center; font-weight:900; cursor:pointer; transition:transform .1s; }
+  .btn:active { transform:scale(.93); }
+  .btn .ic { font-size:30px; line-height:36px; display:block; }
+  .btn .lv { font-size:13px; display:block; }
+  .btn .stars { font-size:10px; letter-spacing:1px; color:#e0a800; display:block; line-height:10px; margin-bottom:2px; }
+  .btn.max { background:#d6f5b8; border-color:#2f7d1f; }
+  .btn .order { position:absolute; top:-8px; right:-6px; min-width:20px; height:20px; border-radius:10px; background:var(--accent); color:#fff; font-size:12px; line-height:20px; padding:0 4px; border:2px solid #fff; }
+  .btn.shake { animation:shake .3s; }
+  @keyframes shake { 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  #bar { display:flex; gap:6px; padding:0 8px 8px; background:var(--panel); }
+  #bar button { flex:1; font:inherit; font-weight:800; font-size:14px; padding:9px 4px; border:3px solid var(--ink); border-radius:12px; background:#ffe08a; cursor:pointer; }
+  #bar button:active { transform:scale(.96); }
+  #modal { position:fixed; inset:0; background:#000a; display:none; align-items:center; justify-content:center; padding:24px; z-index:9; }
+  #modal.show { display:flex; }
+  #card { background:var(--panel); border:4px solid var(--ink); border-radius:20px; padding:22px 20px; text-align:center; max-width:340px; width:100%; }
+  #card h2 { margin:0 0 6px; font-size:26px; }
+  #card p { margin:6px 0; font-size:16px; line-height:1.4; }
+  #card .big { font-size:42px; letter-spacing:4px; }
+  #card button { margin-top:12px; font:inherit; font-weight:900; font-size:17px; padding:10px 22px; border:3px solid var(--ink); border-radius:14px; background:#ffe08a; cursor:pointer; }
+  @media (max-height:640px) { .btn .ic { font-size:24px; line-height:28px; } header h1 { font-size:17px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header><h1>🏝️ Grow Island</h1><div id="moves">Lượt: 0</div></header>
+  <div id="scene">
+    <svg id="svg" viewBox="0 0 400 330" preserveAspectRatio="xMidYMid meet" aria-label="Hòn đảo">
+      <defs>
+        <radialGradient id="lava" cx="50%" cy="30%" r="70%"><stop offset="0" stop-color="#ff9a3c"/><stop offset="1" stop-color="#d1361d"/></radialGradient>
+      </defs>
+      <!-- sóng -->
+      <ellipse cx="200" cy="268" rx="190" ry="48" fill="#ffffff55"/>
+      <ellipse cx="200" cy="262" rx="170" ry="40" fill="#ffffff55"/>
+      <!-- đảo -->
+      <path d="M40 215 Q50 250 200 262 Q350 250 360 215 L360 190 L40 190 Z" fill="var(--dirt)" stroke="#2b2b2b" stroke-width="3"/>
+      <ellipse cx="200" cy="190" rx="160" ry="62" fill="var(--grass)" stroke="#2b2b2b" stroke-width="3"/>
+      <ellipse cx="200" cy="196" rx="95" ry="28" fill="#a4dd68" opacity=".7"/>
+      <g id="props"></g>
+    </svg>
+    <div id="hint"></div>
+  </div>
+  <div id="tray"></div>
+  <div id="bar">
+    <button id="bHelp">❓ Cách chơi</button>
+    <button id="bUndo">↩️ Hoàn tác</button>
+    <button id="bReset">🔄 Chơi lại</button>
+  </div>
+</div>
+<div id="modal"><div id="card"></div></div>
+
+<script src="rules.js"></script>
+<script>
+(function () {
+  var R = window.GrowRules, MAX = R.MAX;
+  // Vị trí từng vật phẩm trên đảo (x, y là đáy của vật) và cỡ chữ theo cấp.
+  var POS = {
+    water:  [95, 205], sun: [330, 70], seed: [160, 235], tree: [255, 185],
+    flower: [200, 220], bee: [140, 140], fruit: [300, 225], volcano: [330, 190]
+  };
+  var SCALE = [0.0, 0.55, 0.85, 1.2];
+
+  var state, order, history, moves, best;
+  try { best = JSON.parse(localStorage.getItem('growIslandBest') || 'null'); } catch (e) { best = null; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var props = $('props'), tray = $('tray'), hint = $('hint'), hintT;
+
+  function buildUI() {
+    props.innerHTML = ''; tray.innerHTML = '';
+    R.ITEMS.forEach(function (it) {
+      var p = POS[it.id];
+      var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'prop'); g.setAttribute('id', 'p-' + it.id);
+      g.setAttribute('transform', 'translate(' + p[0] + ' ' + p[1] + ')');
+      var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.textContent = it.icon; t.setAttribute('y', '-22');
+      g.appendChild(t);
+      g.addEventListener('click', function () { press(it.id); });
+      props.appendChild(g);
+
+      var b = document.createElement('div');
+      b.className = 'btn'; b.id = 'b-' + it.id;
+      b.innerHTML = '<span class="stars"></span><span class="ic">' + it.icon + '</span><span class="lv"></span>';
+      b.addEventListener('click', function () { press(it.id); });
+      tray.appendChild(b);
+    });
+  }
+
+  function render(changedId) {
+    R.ITEMS.forEach(function (it) {
+      var lv = state[it.id];
+      var g = $('p-' + it.id), t = g.firstChild, p = POS[it.id];
+      var s = SCALE[lv];
+      g.style.opacity = lv === 0 ? '0.18' : '1';
+      g.style.transform = 'translate(' + p[0] + 'px,' + p[1] + 'px) scale(' + (lv === 0 ? 0.5 : s) + ')';
+      g.style.transformOrigin = '0 0';
+      var b = $('b-' + it.id);
+      b.classList.toggle('max', lv >= MAX);
+      b.querySelector('.lv').textContent = lv >= MAX ? 'MAX' : 'Lv.' + lv;
+      b.querySelector('.stars').textContent = new Array(lv + 1).join('★') + new Array(MAX - lv + 1).join('☆');
+      var o = b.querySelector('.order'); if (o) o.remove();
+      var clicks = [];
+      order.forEach(function (id, i) { if (id === it.id) clicks.push(i + 1); });
+      if (clicks.length) {
+        var n = document.createElement('span'); n.className = 'order';
+        n.textContent = clicks[clicks.length - 1]; b.appendChild(n);
+      }
+      if (changedId === it.id) { g.classList.remove('pop'); void g.getBBox(); g.classList.add('pop'); }
+    });
+    $('moves').textContent = 'Lượt: ' + moves;
+    // Núi lửa phun khói theo cấp
+    var v = $('p-volcano').firstChild;
+    v.textContent = state.volcano >= 2 ? '🌋' : '⛰️';
+  }
+
+  function say(msg) {
+    hint.textContent = msg; hint.classList.add('show');
+    clearTimeout(hintT); hintT = setTimeout(function () { hint.classList.remove('show'); }, 1800);
+  }
+
+  function press(id) {
+    if (R.isWon(state)) return;
+    history.push({ state: Object.assign({}, state), order: order.slice(), moves: moves });
+    var r = R.grow(state, id);
+    moves++; order.push(id);
+    if (!r.ok) {
+      say(r.reason);
+      var b = $('b-' + id); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      if (navigator.vibrate) navigator.vibrate(40);
+    }
+    render(r.ok ? id : null);
+    if (R.isWon(state)) setTimeout(win, 500);
+  }
+
+  function undo() {
+    if (!history.length) return;
+    var h = history.pop();
+    state = h.state; order = h.order; moves = h.moves;
+    render(); say('Đã hoàn tác');
+  }
+
+  function reset() {
+    state = R.newState(); order = []; history = []; moves = 0;
+    render();
+  }
+
+  function modal(html) { $('card').innerHTML = html; $('modal').classList.add('show'); }
+  function closeModal() { $('modal').classList.remove('show'); }
+
+  function win() {
+    var perfect = R.ITEMS.length * MAX;
+    var stars = moves <= perfect ? 3 : moves <= perfect + 4 ? 2 : 1;
+    if (!best || moves < best) {
+      best = moves;
+      try { localStorage.setItem('growIslandBest', JSON.stringify(best)); } catch (e) {}
+    }
+    modal('<h2>🎉 Hòn đảo đã lớn!</h2><div class="big">' + new Array(stars + 1).join('⭐') + '</div>' +
+      '<p>Hoàn thành sau <b>' + moves + '</b> lượt (hoàn hảo: ' + perfect + ').</p>' +
+      '<p>Kỷ lục của bạn: <b>' + best + '</b> lượt</p>' +
+      '<button id="again">Chơi lại</button>');
+    $('again').onclick = function () { closeModal(); reset(); };
+  }
+
+  function help() {
+    modal('<h2>Cách chơi</h2>' +
+      '<p>Chạm vào các biểu tượng để chúng <b>lớn lên</b> từng cấp.</p>' +
+      '<p>Mỗi vật cần các vật khác đạt cấp nhất định mới lớn được. Có thứ còn <b>cản</b> nhau, vì vậy thứ tự bấm rất quan trọng!</p>' +
+      '<p>Đưa <b>cả 8 vật lên MAX</b> để thắng. Càng ít lượt càng nhiều sao ⭐. Số đỏ trên nút là thứ tự bạn bấm gần nhất.</p>' +
+      '<p>Kẹt rồi? Dùng ↩️ Hoàn tác hoặc 🔄 Chơi lại.</p>' +
+      '<button id="ok">Bắt đầu!</button>');
+    $('ok').onclick = closeModal;
+  }
+
+  $('bHelp').onclick = help; $('bUndo').onclick = undo;
+  $('bReset').onclick = function () { reset(); say('Đã chơi lại'); };
+  $('modal').addEventListener('click', function (e) { if (e.target === $('modal')) closeModal(); });
+
+  // Chặn zoom đúp / kéo trang trên iOS
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+  document.addEventListener('touchmove', function (e) { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
+  buildUI(); reset();
+  var seen = false; try { seen = localStorage.getItem('growIslandSeen'); } catch (e) {}
+  if (!seen) { help(); try { localStorage.setItem('growIslandSeen', '1'); } catch (e) {} }
+})();
+</script>
+</body>
+</html>
