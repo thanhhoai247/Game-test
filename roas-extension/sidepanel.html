@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROAS nhanh</title>
+<link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+<header>
+  <h1>ROAS nhanh</h1>
+  <span class="sub">Cost Google Ads × Revenue Adjust</span>
+</header>
+
+<section id="s1">
+  <h2><span class="n">1</span> Đọc Cost từ Google Ads</h2>
+  <p class="hint">Mở trang <b>Campaigns</b> của Google Ads (đã chọn đúng khoảng ngày), rồi bấm nút.</p>
+  <button id="btnScrape" class="primary">Đọc Cost từ tab đang mở</button>
+  <div id="scrapeMsg" class="msg"></div>
+  <div id="scrapeInfo" class="info" hidden></div>
+</section>
+
+<section id="s2">
+  <h2><span class="n">2</span> Nạp Revenue từ Adjust</h2>
+  <div id="drop" class="drop">
+    Kéo thả file <b>CSV / TSV / XLSX</b> vào đây<br>hoặc <button id="btnFile" class="link">chọn file</button>
+    <input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
+  </div>
+  <details>
+    <summary>Hoặc dán bảng copy từ web Adjust</summary>
+    <textarea id="paste" rows="4" placeholder="Dán bảng (có dòng tiêu đề) vào đây"></textarea>
+    <button id="btnPaste">Dùng nội dung đã dán</button>
+  </details>
+  <div id="loadMsg" class="msg"></div>
+  <div id="mapping" hidden>
+    <label>Cột tên camp <select id="selCamp"></select></label>
+    <label>Cột revenue <select id="selRev"></select></label>
+    <label>Đơn vị revenue
+      <select id="selUnit">
+        <option value="USD">USD</option>
+        <option value="COST">Cùng đơn vị với cost</option>
+      </select>
+    </label>
+    
+  </div>
+</section>
+
+<section id="s3" hidden>
+  <h2><span class="n">3</span> Kết quả</h2>
+  <div id="rateRow" class="row" hidden>
+    <label><span>Tỷ giá <span id="curLabel"></span>/USD</span> <input type="number" id="rate" min="0" step="any"></label>
+    <span id="rateNote" class="hint"></span>
+  </div>
+  <div class="row">
+    <label><span>Tô đỏ nếu ROAS &lt; (%)</span> <input type="number" id="thr" value="100" min="0" step="1" class="short"></label>
+    <label class="chk"><input type="checkbox" id="hideZero" checked> Ẩn camp không chi tiêu</label>
+  </div>
+  <div class="cards">
+    <div class="card"><span>Cost (USD)</span><b id="tCost">–</b></div>
+    <div class="card"><span>Revenue (USD)</span><b id="tRev">–</b></div>
+    <div class="card"><span>ROAS tổng</span><b id="tRoas">–</b></div>
+  </div>
+  <div id="warns"></div>
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="name">Camp</th>
+        <th data-k="cost" class="num">Cost</th>
+        <th data-k="costUsd" class="num">Cost USD</th>
+        <th data-k="revenueUsd" class="num">Revenue</th>
+        <th data-k="roas" class="num">ROAS</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="row">
+    <button id="btnXlsx" class="primary">Tải Excel</button>
+    <button id="btnCopy">Copy bảng</button>
+    <span id="actMsg" class="hint"></span>
+  </div>
+  <details id="unmatchedBox">
+    <summary>Revenue không khớp camp nào (<span id="unCount">0</span>)</summary>
+    <table id="unTbl"><tbody></tbody></table>
+  </details>
+</section>
+
+<script src="lib/read-excel-file.min.js"></script>
+<script src="lib/write-excel-file.min.js"></script>
+<script src="core.js"></script>
+<script src="scraper.js"></script>
+<script src="sidepanel.js"></script>
+</body>
+</html>

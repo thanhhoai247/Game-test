@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "ROAS nhanh",
+  "version": "1.0.0",
+  "description": "Đọc Cost từng camp trên Google Ads, ghép với Revenue xuất từ Adjust và tính ROAS. Chỉ đọc, không sửa gì trong Google Ads.",
+  "minimum_chrome_version": "114",
+  "permissions": ["sidePanel", "scripting", "storage"],
+  "host_permissions": ["https://ads.google.com/*"],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "ROAS nhanh" },
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+}

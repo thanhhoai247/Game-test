@@ -1,0 +1,32 @@
+HƯỚNG DẪN CÀI "ROAS nhanh" (Chrome, Windows)
+=============================================
+
+CÀI ĐẶT (làm 1 lần)
+1. Giải nén file ROAS-nhanh.zip ra một thư mục cố định (ví dụ D:\ROAS-nhanh).
+   Đừng xoá hay di chuyển thư mục này sau khi cài, vì Chrome đọc extension trực tiếp từ đó.
+2. Mở Chrome, gõ vào thanh địa chỉ:  chrome://extensions   rồi Enter.
+3. Bật công tắc "Developer mode" (Chế độ dành cho nhà phát triển) ở góc phải trên.
+4. Bấm "Load unpacked" (Tải tiện ích đã giải nén) và chọn thư mục vừa giải nén
+   (thư mục có chứa file manifest.json).
+5. Bấm biểu tượng mảnh ghép (Extensions) trên thanh công cụ Chrome, ghim "ROAS nhanh" lại.
+
+DÙNG HÀNG NGÀY
+1. Mở Google Ads, vào trang Campaigns, chọn đúng khoảng ngày (và bộ lọc nếu cần).
+   Nếu bảng có nhiều trang, tăng "Show rows" để hiện đủ camp.
+2. Bấm biểu tượng "ROAS nhanh" -> khung bên phải mở ra.
+3. Bước 1: bấm "Đọc Cost từ tab đang mở". Kiểm tra số camp và tổng cost.
+4. Bước 2: xuất Revenue từ Adjust (cùng khoảng ngày), kéo file CSV/XLSX vào khung,
+   hoặc dán bảng copy từ web. Kiểm tra 2 ô "Cột tên camp" và "Cột revenue" đã chọn đúng
+   (lần sau extension tự nhớ).
+5. Bước 3: xem ROAS từng camp. Bấm tiêu đề cột để sắp xếp.
+   - Dòng đỏ: ROAS thấp hơn ngưỡng (chỉnh được).
+   - Dấu ⚠ cạnh tên camp: không tìm thấy revenue khớp camp đó.
+   - "Tải Excel" để lưu file .xlsx, "Copy bảng" để dán vào Excel/Google Sheet.
+
+LƯU Ý
+- Extension chỉ ĐỌC, không bật/tắt hay sửa gì trong Google Ads.
+- Dữ liệu chỉ xử lý trong trình duyệt trên máy chị, không gửi đi đâu.
+- Tiền tệ không phải USD: tỷ giá tự tính từ cột "USD" của Google Ads; có thể sửa tay.
+- Revenue mặc định hiểu là USD. Nếu file Adjust tính bằng tiền cost (IDR...), đổi "Đơn vị revenue".
+- Để khớp camp chính xác nhất, bật thêm cột "Campaign ID" trong bảng Google Ads.
+- Cập nhật phiên bản mới: thay file trong thư mục cũ rồi vào chrome://extensions bấm nút tải lại.
