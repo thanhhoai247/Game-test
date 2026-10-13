@@ -80,7 +80,7 @@ t('tên trùng nhau thì không khớp', () => {
 t('Adjust chỉ có campaign_id_network: khớp theo ID, lọc kênh/ngày', () => {
   const csv = 'day,channel,campaign_id_network,cohort_ad_revenue\n2026-10-13,Google Ads,111111111,2.5\n2026-10-13,TikTok for Business,222222222,1.5\n2026-10-12,Google Ads,111111111,9\n';
   const rows = C.parseDelimited(csv), h = rows[0], g = C.guessAdjustColumns(h);
-  assert.deepStrictEqual(g, { campaign: 2, revenue: 3, day: 0, channel: 1 });
+  assert.deepStrictEqual(g, { campaign: 2, revenue: 3, id: 2, day: 0, channel: 1 });
   const agg = C.aggregateRevenue(rows.slice(1), g.campaign, g.revenue, r => C.normDay(r[0]) === '2026-10-13' && /google/i.test(r[1]));
   assert.strictEqual(agg.entries.length, 1);
   const built = { campaigns: [{ name: 'X', id: '111111111', cost: 5, currency: 'USD' }, { name: 'Y', id: '333333333', cost: 5, currency: 'USD' }], currency: 'USD' };
@@ -121,5 +121,14 @@ t('Unity: cửa sổ 17h hôm qua -> 16h59 hôm nay', () => {
   assert.strictEqual(w.total, 20); assert.strictEqual(w.groups.get('B'), 10); assert.strictEqual(w.missing.length, 21);
   const w2 = C.unityWindow(rows, { dtIdx: 0, spendIdx: 2, groupIdx: -1, date: '2026-10-14', startHour: 17, shiftHours: 7 });
   assert.notStrictEqual(w2.total, 20);
+});
+t('Adjust có cả tên camp (có dấu phẩy) và ID', () => {
+  const csv = 'day,channel,campaign_network,campaign_id_network,cohort_ad_revenue\n2026-10-13,Google Ads,"SGT_001_x_6,7,8",24339474639,2.4054\n2026-10-13,Google Ads,"SGT_001_x_6,7,8",24339474639,1\n';
+  const rows = C.parseDelimited(csv), g = C.guessAdjustColumns(rows[0]);
+  assert.deepStrictEqual(g, { campaign: 2, revenue: 4, id: 3, day: 0, channel: 1 });
+  const agg = C.aggregateRevenue(rows.slice(1), g.campaign, g.revenue, null, g.id);
+  assert.strictEqual(agg.entries.length, 1); assert.strictEqual(agg.entries[0].id, '24339474639'); assert.ok(Math.abs(agg.entries[0].revenue - 3.4054) < 1e-9);
+  const b = { campaigns: [{ name: 'SGT_001_x_6,7,8', id: null, cost: 1, currency: 'USD' }], currency: 'USD' };
+  assert.ok(C.compute(b, agg.entries, { rate: 1, revenueUnit: 'USD', revenueLoaded: true }).rows[0].matched);
 });
 console.log(`\n${n} test đạt`);

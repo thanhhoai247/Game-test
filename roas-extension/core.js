@@ -127,7 +127,7 @@ const ROASCore = (() => {
   const TOTAL_RE = /^(total|totals|grand total|tổng|tổng cộng)\b/i;
 
   // rows: mảng các dòng (đã bỏ header); trả về danh sách camp đã cộng dồn revenue
-  function aggregateRevenue(rows, campIdx, revIdx, filter) {
+  function aggregateRevenue(rows, campIdx, revIdx, filter, idIdx) {
     const decimal = detectDecimal(rows.map(r => r[revIdx]), '.');
     const map = new Map();
     let skipped = 0;
@@ -136,8 +136,12 @@ const ROASCore = (() => {
       const raw = r[campIdx];
       if (raw == null || String(raw).trim() === '' || TOTAL_RE.test(String(raw).trim())) { skipped++; continue; }
       const rev = parseNum(r[revIdx], decimal);
-      const key = normName(raw);
-      if (!map.has(key)) map.set(key, { raw: String(raw).trim(), ...splitAdjustName(raw), revenue: 0, lines: 0 });
+      const idv = idIdx >= 0 ? String(r[idIdx] == null ? '' : r[idIdx]).trim() : '';
+      const key = /^\d{6,}$/.test(idv) ? 'id:' + idv : normName(raw);
+      if (!map.has(key)) {
+        const sp = splitAdjustName(raw);
+        map.set(key, { raw: String(raw).trim(), base: sp.base, id: /^\d{6,}$/.test(idv) ? idv : sp.id, revenue: 0, lines: 0 });
+      }
       const e = map.get(key);
       e.revenue += rev || 0; e.lines++;
     }
@@ -272,6 +276,7 @@ const ROASCore = (() => {
     const g = guessColumns(H);
     return {
       campaign: g.campaign, revenue: g.revenue,
+      id: pickFirst(H, [/^campaign[ _]?id([ _]?network)?$/i, /campaign.*\bid\b|campaign_id/i]),
       day: pickFirst(H, [/^(day|date|ngày)$/i, /day|date|ngày/i]),
       channel: pickFirst(H, [/^channel$/i, /channel|network$|partner|kênh/i])
     };

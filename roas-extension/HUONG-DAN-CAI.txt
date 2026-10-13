@@ -11,8 +11,8 @@ CÀI ĐẶT (làm 1 lần)
 
 FILE REVENUE ADJUST (dùng chung cho Google Ads và TikTok)
 - Kéo file CSV/XLSX vào ô "Revenue Adjust". Extension tự nhận cột: ngày (day), kênh (channel),
-  camp (campaign_id_network) và revenue (cohort_ad_revenue).
-- File này chỉ có ID camp, nên cost bên Google/TikTok cũng phải có ID camp:
+  tên camp (campaign_network), ID camp (campaign_id_network) và revenue (cohort_ad_revenue). Khớp theo ID trước, không có ID thì khớp theo tên.
+- Nên có ID camp ở phía cost để khớp chắc nhất (không có ID thì extension khớp theo tên camp):
   * Google Ads: BẬT cột "Campaign ID" trong bảng Campaigns (Columns -> Modify columns).
   * TikTok: bảng ITG cần có cột ID camp.
 - Chọn "Ngày xuất số" (lấy từ cột ngày của file). Kênh được lọc tự động (Google Ads / TikTok).

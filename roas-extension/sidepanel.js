@@ -7,7 +7,7 @@
   let hist = [];
   let tab = 'google';
   let fileTarget = null;
-  const adj = { table: null, idx: { camp: -1, rev: -1, day: -1, chan: -1 }, day: 'all' };
+  const adj = { table: null, idx: { camp: -1, rev: -1, day: -1, chan: -1, id: -1 }, day: 'all' };
   const st = {
     google: { builts: [], accts: [], result: null, sort: { key: 'costUsd', asc: false }, prevMap: null, prevDay: null, rateKey: null, notes: [], sel: null },
     tiktok: { builts: [], tk: null, result: null, sort: { key: 'costUsd', asc: false }, prevMap: null, prevDay: null, rateKey: null, notes: [], sel: null }
@@ -82,7 +82,7 @@
     const h = C.findHeaderRow(rows);
     const headers = rows[h].map((x, i) => String(x == null || x === '' ? 'Cột ' + (i + 1) : x).trim());
     adj.table = { headers, rows: rows.slice(h + 1) };
-    const key = 'adj|' + headers.join('|'), g = C.guessAdjustColumns(headers), guess = { camp: g.campaign, rev: g.revenue, day: g.day, chan: g.channel }, saved = store.mapping[key];
+    const key = 'adj|' + headers.join('|'), g = C.guessAdjustColumns(headers), guess = { camp: g.campaign, rev: g.revenue, day: g.day, chan: g.channel, id: g.id }, saved = store.mapping[key];
     adj.idx = saved ? { ...guess, ...saved } : guess;
     fillAdjSelects(headers);
     const days = adj.idx.day >= 0 ? [...new Set(adj.table.rows.map(r => C.normDay(r[adj.idx.day])).filter(Boolean))].sort().reverse() : [];
@@ -94,7 +94,7 @@
   }
   function fillAdjSelects(headers) {
     $('selCamp').innerHTML = colOptions(headers, adj.idx.camp); $('selRev').innerHTML = colOptions(headers, adj.idx.rev);
-    $('selDayCol').innerHTML = colOptions(headers, adj.idx.day, '— không có —'); $('selChan').innerHTML = colOptions(headers, adj.idx.chan, '— không có —');
+    $('selDayCol').innerHTML = colOptions(headers, adj.idx.day, '— không có —'); $('selChan').innerHTML = colOptions(headers, adj.idx.chan, '— không có —'); $('selId').innerHTML = colOptions(headers, adj.idx.id, '— không có —');
   }
   function fillDays() {
     const days = adj.days || [];
@@ -103,7 +103,7 @@
   }
   $('selDay').onchange = () => { adj.day = $('selDay').value; st.google.prevMap = st.tiktok.prevMap = null; afterAdjustChange(); };
   $('selUnit').onchange = () => { store.unit = $('selUnit').value; saveStore(); afterAdjustChange(); };
-  [['selCamp', 'camp'], ['selRev', 'rev'], ['selDayCol', 'day'], ['selChan', 'chan']].forEach(([id, k]) => $(id).onchange = () => {
+  [['selCamp', 'camp'], ['selRev', 'rev'], ['selDayCol', 'day'], ['selChan', 'chan'], ['selId', 'id']].forEach(([id, k]) => $(id).onchange = () => {
     adj.idx[k] = +$(id).value;
     store.mapping['adj|' + adj.table.headers.join('|')] = { ...adj.idx }; saveStore();
     if (k === 'day') { adj.days = adj.idx.day >= 0 ? [...new Set(adj.table.rows.map(r => C.normDay(r[adj.idx.day])).filter(Boolean))].sort().reverse() : []; fillDays(); }
@@ -114,9 +114,9 @@
   // doanh thu theo kênh + ngày đã chọn; null nếu chưa nạp
   function adjustFor(ch) {
     if (!adj.table || adj.idx.camp < 0 || adj.idx.rev < 0) return null;
-    const { camp, rev, day, chan } = adj.idx;
+    const { camp, rev, day, chan, id } = adj.idx;
     const f = r => (adj.day === 'all' || day < 0 || C.normDay(r[day]) === adj.day) && (chan < 0 || CHAN_RE[ch].test(String(r[chan] == null ? '' : r[chan])));
-    const agg = C.aggregateRevenue(adj.table.rows, camp, rev, f);
+    const agg = C.aggregateRevenue(adj.table.rows, camp, rev, f, id);
     return { entries: agg.entries, chanRows: chan < 0 ? null : adj.table.rows.filter(r => CHAN_RE[ch].test(String(r[chan] == null ? '' : r[chan]))).length };
   }
 
@@ -288,8 +288,8 @@
     if (!a) W.push(['Chưa nạp file revenue Adjust — mới hiện cost.', 0]);
     if (currencies.some(c => !rateInputs(ch)[c])) W.push(['Chưa có tỷ giá nên chưa tính được cost USD/ROAS. Hãy nhập tỷ giá.', 1]);
     if (ch === 'tiktok' && S.builts[0] && S.builts[0].built.unknown) W.push(['Chưa nhận ra mệnh giá của TikTok — chọn ở ô "Mệnh giá".', 1]);
-    const noId = r.rows.filter(x => x.cost > 0 && !x.id).length;
-    if (a && noId) W.push([`${noId} camp có chi tiêu nhưng không đọc được Campaign ID, mà file Adjust chỉ có ID nên chưa khớp được.${ch === 'google' ? ' Hãy bật cột "Campaign ID" trong bảng Google Ads rồi đọc lại.' : ' Hãy chọn cột ID camp (nếu bảng có).'}`, 1]);
+    const noId = r.rows.filter(x => x.cost > 0 && !x.id && !x.matched).length;
+    if (a && noId) W.push([`${noId} camp có chi tiêu nhưng không đọc được Campaign ID và tên cũng không khớp tên trong file Adjust.${ch === 'google' ? ' Hãy bật cột "Campaign ID" trong bảng Google Ads rồi đọc lại.' : ' Hãy chọn cột ID camp (nếu bảng có).'}`, 1]);
     if (a && a.chanRows === 0) W.push(['File Adjust không có dòng nào của kênh này — kiểm tra ô "Cột kênh".', 1]);
     if (a && adj.idx.day >= 0 && adj.day !== 'all' && !a.entries.length) W.push(['Không có revenue nào trong ngày/kênh đã chọn.', 1]);
     if (ch === 'google') for (const b of S.builts) {
