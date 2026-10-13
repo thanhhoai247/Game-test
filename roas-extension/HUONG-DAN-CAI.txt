@@ -1,32 +1,48 @@
-HƯỚNG DẪN CÀI "ROAS nhanh" (Chrome, Windows)
-=============================================
+"XUẤT SỐ-MULTICHANNEL" – HƯỚNG DẪN CÀI VÀ DÙNG (Chrome, Windows)
+================================================================
 
 CÀI ĐẶT (làm 1 lần)
-1. Giải nén file ROAS-nhanh.zip ra một thư mục cố định (ví dụ D:\ROAS-nhanh).
-   Đừng xoá hay di chuyển thư mục này sau khi cài, vì Chrome đọc extension trực tiếp từ đó.
-2. Mở Chrome, gõ vào thanh địa chỉ:  chrome://extensions   rồi Enter.
-3. Bật công tắc "Developer mode" (Chế độ dành cho nhà phát triển) ở góc phải trên.
-4. Bấm "Load unpacked" (Tải tiện ích đã giải nén) và chọn thư mục vừa giải nén
-   (thư mục có chứa file manifest.json).
-5. Bấm biểu tượng mảnh ghép (Extensions) trên thanh công cụ Chrome, ghim "ROAS nhanh" lại.
+1. Giải nén file zip ra thư mục cố định (ví dụ D:\Xuat-so). Không xoá/di chuyển thư mục sau khi cài.
+2. Mở Chrome, vào  chrome://extensions
+3. Bật "Developer mode" (góc phải trên).
+4. Bấm "Load unpacked" và chọn thư mục vừa giải nén (thư mục có file manifest.json).
+5. Ghim extension ở biểu tượng mảnh ghép. Bấm vào icon để mở khung bên phải.
+   (Đã có bản cũ "ROAS nhanh"? Bấm nút tải lại trong chrome://extensions sau khi thay file.)
 
-DÙNG HÀNG NGÀY
-1. Mở Google Ads, vào trang Campaigns, chọn đúng khoảng ngày (và bộ lọc nếu cần).
-   Nếu bảng có nhiều trang, tăng "Show rows" để hiện đủ camp.
-2. Bấm biểu tượng "ROAS nhanh" -> khung bên phải mở ra.
-3. Bước 1: bấm "Đọc Cost từ tab đang mở". Kiểm tra số camp và tổng cost.
-4. Bước 2: xuất Revenue từ Adjust (cùng khoảng ngày), kéo file CSV/XLSX vào khung,
-   hoặc dán bảng copy từ web. Kiểm tra 2 ô "Cột tên camp" và "Cột revenue" đã chọn đúng
-   (lần sau extension tự nhớ).
-5. Bước 3: xem ROAS từng camp. Bấm tiêu đề cột để sắp xếp.
-   - Dòng đỏ: ROAS thấp hơn ngưỡng (chỉnh được).
-   - Dấu ⚠ cạnh tên camp: không tìm thấy revenue khớp camp đó.
-   - "Tải Excel" để lưu file .xlsx, "Copy bảng" để dán vào Excel/Google Sheet.
+FILE REVENUE ADJUST (dùng chung cho Google Ads và TikTok)
+- Kéo file CSV/XLSX vào ô "Revenue Adjust". Extension tự nhận cột: ngày (day), kênh (channel),
+  camp (campaign_id_network) và revenue (cohort_ad_revenue).
+- File này chỉ có ID camp, nên cost bên Google/TikTok cũng phải có ID camp:
+  * Google Ads: BẬT cột "Campaign ID" trong bảng Campaigns (Columns -> Modify columns).
+  * TikTok: bảng ITG cần có cột ID camp.
+- Chọn "Ngày xuất số" (lấy từ cột ngày của file). Kênh được lọc tự động (Google Ads / TikTok).
+
+1 · GOOGLE ADS
+1. Mở mỗi tài khoản Google Ads ở một tab trang Campaigns, chọn đúng ngày trên trang đó.
+2. Tick tài khoản muốn xem. Thêm mã app (ví dụ SPL_009, SGT_001) rồi tick để chỉ xem camp có chứa mã đó
+   (tick nhiều mã = lấy camp chứa một trong các mã; không tick = lấy tất cả).
+3. Bấm "Đọc cost & tính ROAS" (extension sẽ tự chuyển qua từng tab để đọc rồi quay lại).
+4. Tỷ giá IDR/USD tự tính từ cột "USD" của Google Ads, sửa tay được.
+
+2 · TIKTOK (ITG)
+1. Mở trang marketing.itgproduct.com/tiktok/ads-editor, chọn ngày/tài khoản trên trang.
+2. Bấm "Đọc bảng từ tab ITG". Extension hiện mệnh giá đọc được (IDR hay VND) – đổi tay được ở ô "Mệnh giá".
+3. Tự điền tỷ giá so với USD ở ô tỷ giá (được nhớ cho lần sau).
+4. Nếu extension không đọc được bảng, dán bảng (copy từ trang) vào mục "Hoặc nạp bảng spend từ file / dán".
+   LƯU Ý: phần đọc trang ITG chưa thử trên trang thật.
+
+3 · UNITY (spend theo giờ)
+1. Xuất báo cáo spend THEO GIỜ từ Unity (CSV/XLSX), kéo vào đây.
+2. Chọn ngày D: spend của ngày D = từ 17:00 ngày D-1 đến 16:59 ngày D (đổi giờ bắt đầu được).
+3. Có thể nhóm theo một cột (campaign/country...). Nếu file theo UTC mà mốc 17h của chị là giờ Việt Nam
+   thì điền "Lệch giờ" = +7. Thiếu giờ nào sẽ được báo.
+
+MÀU VÀ LỊCH SỬ ROAS (Google Ads, TikTok)
+- Xanh nhạt: ROAS >= 100%.  Vàng: 85–99%.  Đỏ: < 85%.
+- Camp có ID mà file Adjust không có dòng nào => revenue 0, ROAS 0% (đỏ). Camp không có ID => không khớp được (xám).
+- Bấm "Lưu lần check" sau mỗi lần xuất số. Cột Δ cho biết ROAS tăng (▲) hay giảm (▼) bao nhiêu điểm % so với lần
+  lưu trước (cùng ngày). Biểu đồ "Lịch sử ROAS" vẽ ROAS theo giờ chị check; bấm một dòng camp để xem biểu đồ của camp đó.
+- "Tải Excel" có tô màu theo ngưỡng. "Copy bảng" để dán vào Excel/Sheet.
 
 LƯU Ý
-- Extension chỉ ĐỌC, không bật/tắt hay sửa gì trong Google Ads.
-- Dữ liệu chỉ xử lý trong trình duyệt trên máy chị, không gửi đi đâu.
-- Tiền tệ không phải USD: tỷ giá tự tính từ cột "USD" của Google Ads; có thể sửa tay.
-- Revenue mặc định hiểu là USD. Nếu file Adjust tính bằng tiền cost (IDR...), đổi "Đơn vị revenue".
-- Để khớp camp chính xác nhất, bật thêm cột "Campaign ID" trong bảng Google Ads.
-- Cập nhật phiên bản mới: thay file trong thư mục cũ rồi vào chrome://extensions bấm nút tải lại.
+- Extension chỉ ĐỌC, không sửa gì trong Google Ads/TikTok/Unity. Dữ liệu và lịch sử chỉ lưu trong trình duyệt của chị.

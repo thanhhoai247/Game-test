@@ -76,4 +76,50 @@ t('tên trùng nhau thì không khớp', () => {
   const r = C.compute(built, [{ raw: 'A', base: 'A', id: null, revenue: 5, lines: 1 }], { rate: 1, revenueUnit: 'USD' });
   assert.strictEqual(r.unmatched.length, 1);
 });
+
+t('Adjust chỉ có campaign_id_network: khớp theo ID, lọc kênh/ngày', () => {
+  const csv = 'day,channel,campaign_id_network,cohort_ad_revenue\n2026-10-13,Google Ads,111111111,2.5\n2026-10-13,TikTok for Business,222222222,1.5\n2026-10-12,Google Ads,111111111,9\n';
+  const rows = C.parseDelimited(csv), h = rows[0], g = C.guessAdjustColumns(h);
+  assert.deepStrictEqual(g, { campaign: 2, revenue: 3, day: 0, channel: 1 });
+  const agg = C.aggregateRevenue(rows.slice(1), g.campaign, g.revenue, r => C.normDay(r[0]) === '2026-10-13' && /google/i.test(r[1]));
+  assert.strictEqual(agg.entries.length, 1);
+  const built = { campaigns: [{ name: 'X', id: '111111111', cost: 5, currency: 'USD' }, { name: 'Y', id: '333333333', cost: 5, currency: 'USD' }], currency: 'USD' };
+  const r = C.compute(built, agg.entries, { rates: {}, revenueUnit: 'USD', revenueLoaded: true });
+  assert.strictEqual(r.rows[0].roas, 0.5);
+  assert.strictEqual(r.rows[1].roas, 0); // có ID nhưng không có revenue => 0%
+});
+t('roasClass: >=100 xanh, 85-99 vàng, <85 đỏ', () => {
+  assert.strictEqual(C.roasClass(1), 'good'); assert.strictEqual(C.roasClass(0.9996), 'good');
+  assert.strictEqual(C.roasClass(0.99), 'warn'); assert.strictEqual(C.roasClass(0.85), 'warn');
+  assert.strictEqual(C.roasClass(0.849), 'bad'); assert.strictEqual(C.roasClass(null), 'na');
+});
+t('lọc theo mã app', () => {
+  const terms = C.parseTerms('sgt_001, x', ['SPL_009']);
+  assert.ok(C.matchTerms('13/10_SPL_009_TNT', terms)); assert.ok(C.matchTerms('SGT_001_a', terms)); assert.ok(!C.matchTerms('ABC', terms));
+  assert.ok(C.matchTerms('anything', []));
+});
+t('nhiều tiền tệ: mỗi camp quy đổi theo tỷ giá riêng', () => {
+  const m = C.mergeBuilt([{ campaigns: [{ name: 'A', id: '1', cost: 17908, currency: 'IDR' }], currency: 'IDR' }, { campaigns: [{ name: 'B', id: '2', cost: 10, currency: 'USD' }], currency: 'USD' }]);
+  const r = C.compute(m, [], { rates: { IDR: 17908 }, revenueUnit: 'USD' });
+  assert.strictEqual(r.totals.costUsd, 11);
+});
+t('TikTok: bảng ITG, nhận mệnh giá, ID trong ô tên', () => {
+  const headers = ['Campaign', 'Status', 'Spend'];
+  const cols = C.guessCostColumns(headers);
+  const b = C.buildFromTable([['SGT_001 a\nID: 1878927480102258', 'On', 'Rp 1.234.500'], ['Total', '', 'Rp 1.234.500']], cols, null);
+  assert.strictEqual(b.campaigns.length, 1); assert.strictEqual(b.currency, 'IDR');
+  assert.strictEqual(b.campaigns[0].id, '1878927480102258'); assert.strictEqual(b.campaigns[0].cost, 1234500); assert.strictEqual(b.campaigns[0].name, 'SGT_001 a');
+});
+t('ngày trên Google Ads', () => {
+  assert.deepStrictEqual(C.parseRangeDays('Today 13 Oct 2026'), ['2026-10-13']);
+  assert.deepStrictEqual(C.parseRangeDays('1 Oct 2026 – 13 Oct 2026'), ['2026-10-01', '2026-10-13']);
+  assert.strictEqual(C.parseRangeDays('Custom'), null);
+});
+t('Unity: cửa sổ 17h hôm qua -> 16h59 hôm nay', () => {
+  const rows = [['2026-10-13T16:00:00Z', 'A', '5'], ['2026-10-13T17:00:00Z', 'A', '10'], ['2026-10-14 16:30', 'B', '7'], ['2026-10-14T17:00:00Z', 'A', '100'], ['14/10/2026 01:00', 'B', '3']];
+  const w = C.unityWindow(rows, { dtIdx: 0, spendIdx: 2, groupIdx: 1, date: '2026-10-14', startHour: 17, shiftHours: 0 });
+  assert.strictEqual(w.total, 20); assert.strictEqual(w.groups.get('B'), 10); assert.strictEqual(w.missing.length, 21);
+  const w2 = C.unityWindow(rows, { dtIdx: 0, spendIdx: 2, groupIdx: -1, date: '2026-10-14', startHour: 17, shiftHours: 7 });
+  assert.notStrictEqual(w2.total, 20);
+});
 console.log(`\n${n} test đạt`);

@@ -45,3 +45,38 @@ td.name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
 tr.low td { background: #fee2e2; color: #991b1b; }
 tr.nomatch td.name::after { content: " ⚠"; color: #d97706; }
 #unTbl td { white-space: normal; }
+
+/* ===== v2: tab, bộ lọc, màu ROAS, biểu đồ ===== */
+.tabs { display: flex; gap: 4px; margin-bottom: 4px; }
+.tabs button { flex: 1; padding: 6px 4px; font-weight: 600; }
+.tabs button.on { background: #2563eb; color: #fff; border-color: #2563eb; }
+.full { width: 100%; margin-top: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+.grid2 label, label.block { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #374151; }
+input[type=text], input[type=date] { font: inherit; padding: 4px 6px; width: 100%; margin-top: 6px; border: 1px solid #d1d5db; border-radius: 6px; }
+.row input[type=text] { margin-top: 0; }
+.short2 { width: 60% !important; }
+.accts label { display: flex; gap: 6px; align-items: center; padding: 3px 0; }
+.accts .none { color: #b45309; font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.chip { display: inline-flex; align-items: center; gap: 3px; border: 1px solid #cbd5e1; border-radius: 999px; padding: 2px 8px; font-size: 12px; cursor: pointer; user-select: none; }
+.chip.on { background: #dbeafe; border-color: #2563eb; }
+.chip .x { color: #9ca3af; margin-left: 2px; }
+.drop.small { padding: 8px; margin-top: 6px; }
+.legend { margin-top: 8px; font-size: 11px; color: #6b7280; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin: 0 3px 0 8px; vertical-align: -2px; }
+i.good, tr.good td { background: #dcfce7; } i.warn, tr.warn td { background: #fef9c3; } i.bad, tr.bad td { background: #fee2e2; }
+tr.low td { background: inherit; color: inherit; }
+tr.sel td { outline: 1px solid #2563eb; outline-offset: -1px; }
+tr.na td { color: #6b7280; }
+.up { color: #047857; } .down { color: #b91c1c; }
+.rates { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.rates label { flex-direction: column; display: flex; font-size: 12px; }
+.rates input { width: 110px; }
+.rates small { color: #6b7280; }
+.card.good { background: #dcfce7; } .card.warn { background: #fef9c3; } .card.bad { background: #fee2e2; }
+#chart svg { width: 100%; height: auto; display: block; background: #fafafa; border-radius: 8px; }
+#chart text { font: 10px system-ui, sans-serif; fill: #6b7280; }
+.hrow { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12px; }
+#unOut table { margin-top: 6px; }
+.big { font-size: 20px; font-weight: 700; }

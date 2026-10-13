@@ -3,91 +3,160 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ROAS nhanh</title>
+<title>Xuất số-multichannel</title>
 <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
-<header>
-  <h1>ROAS nhanh</h1>
-  <span class="sub">Cost Google Ads × Revenue Adjust</span>
-</header>
+<header><h1>Xuất số-multichannel</h1></header>
+<nav class="tabs">
+  <button data-tab="google" class="on">1 · Google Ads</button>
+  <button data-tab="tiktok">2 · TikTok</button>
+  <button data-tab="unity">3 · Unity</button>
+</nav>
 
-<section id="s1">
-  <h2><span class="n">1</span> Đọc Cost từ Google Ads</h2>
-  <p class="hint">Mở trang <b>Campaigns</b> của Google Ads (đã chọn đúng khoảng ngày), rồi bấm nút.</p>
-  <button id="btnScrape" class="primary">Đọc Cost từ tab đang mở</button>
-  <div id="scrapeMsg" class="msg"></div>
-  <div id="scrapeInfo" class="info" hidden></div>
-</section>
-
-<section id="s2">
-  <h2><span class="n">2</span> Nạp Revenue từ Adjust</h2>
-  <div id="drop" class="drop">
-    Kéo thả file <b>CSV / TSV / XLSX</b> vào đây<br>hoặc <button id="btnFile" class="link">chọn file</button>
-    <input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
+<!-- Revenue Adjust: dùng chung cho Google Ads và TikTok -->
+<section id="adjustBox">
+  <h2>Revenue Adjust</h2>
+  <div id="drop" class="drop" data-for="adjust">
+    Kéo thả file <b>CSV / XLSX</b> vào đây hoặc <button class="link" data-pick="adjust">chọn file</button>
   </div>
   <details>
-    <summary>Hoặc dán bảng copy từ web Adjust</summary>
-    <textarea id="paste" rows="4" placeholder="Dán bảng (có dòng tiêu đề) vào đây"></textarea>
-    <button id="btnPaste">Dùng nội dung đã dán</button>
+    <summary>Hoặc dán bảng</summary>
+    <textarea id="adjPaste" rows="3" placeholder="Dán bảng (có dòng tiêu đề)"></textarea>
+    <button id="adjPasteBtn">Dùng nội dung đã dán</button>
   </details>
-  <div id="loadMsg" class="msg"></div>
-  <div id="mapping" hidden>
-    <label>Cột tên camp <select id="selCamp"></select></label>
-    <label>Cột revenue <select id="selRev"></select></label>
-    <label>Đơn vị revenue
-      <select id="selUnit">
-        <option value="USD">USD</option>
-        <option value="COST">Cùng đơn vị với cost</option>
-      </select>
-    </label>
-    
+  <div id="adjMsg" class="msg"></div>
+  <div id="adjMap" hidden>
+    <div class="grid2">
+      <label>Ngày xuất số <select id="selDay"></select></label>
+      <label>Đơn vị revenue
+        <select id="selUnit"><option value="USD">USD</option><option value="COST">Cùng đơn vị cost</option></select>
+      </label>
+      <label>Cột camp <select id="selCamp"></select></label>
+      <label>Cột revenue <select id="selRev"></select></label>
+      <label>Cột ngày <select id="selDayCol"></select></label>
+      <label>Cột kênh <select id="selChan"></select></label>
+    </div>
   </div>
 </section>
 
-<section id="s3" hidden>
-  <h2><span class="n">3</span> Kết quả</h2>
-  <div id="rateRow" class="row" hidden>
-    <label><span>Tỷ giá <span id="curLabel"></span>/USD</span> <input type="number" id="rate" min="0" step="any"></label>
-    <span id="rateNote" class="hint"></span>
-  </div>
-  <div class="row">
-    <label><span>Tô đỏ nếu ROAS &lt; (%)</span> <input type="number" id="thr" value="100" min="0" step="1" class="short"></label>
-    <label class="chk"><input type="checkbox" id="hideZero" checked> Ẩn camp không chi tiêu</label>
-  </div>
+<!-- ===== Google Ads ===== -->
+<div class="panel" id="p-google" data-ch="google">
+  <section>
+    <h2>Tài khoản Google Ads</h2>
+    <p class="hint">Mở mỗi tài khoản ở một tab trang <b>Campaigns</b>, rồi tick tài khoản muốn xem.</p>
+    <div class="accts"></div>
+    <button class="btnRefresh">Quét lại các tab</button>
+  </section>
+  <section>
+    <h2>Lọc camp theo app</h2>
+    <div class="chips"></div>
+    <div class="row"><input type="text" class="addApp short2" placeholder="Thêm mã app (SPL_009)"><button class="btnAddApp">Thêm</button></div>
+    <input type="text" class="freeText" placeholder="Hoặc gõ chữ có trong tên camp (cách nhau dấu phẩy)">
+    <button class="primary btnRun full">Đọc cost &amp; tính ROAS</button>
+    <div class="msg runMsg"></div>
+  </section>
+  <section class="result" hidden></section>
+</div>
+
+<!-- ===== TikTok ===== -->
+<div class="panel" id="p-tiktok" data-ch="tiktok" hidden>
+  <section>
+    <h2>Spend TikTok (ITG Marketing Tool)</h2>
+    <p class="hint">Mở trang <b>marketing.itgproduct.com/tiktok/ads-editor</b>, chọn đúng ngày/tài khoản trên trang, rồi bấm đọc.</p>
+    <button class="primary btnRun full">Đọc bảng từ tab ITG</button>
+    <details>
+      <summary>Hoặc nạp bảng spend từ file / dán</summary>
+      <div class="drop small" data-for="tiktok">Kéo thả CSV/XLSX hoặc <button class="link" data-pick="tiktok">chọn file</button></div>
+      <textarea class="tkPaste" rows="3" placeholder="Dán bảng có cột campaign và spend"></textarea>
+      <button class="tkPasteBtn">Dùng nội dung đã dán</button>
+    </details>
+    <div class="msg runMsg"></div>
+    <div class="tkMap" hidden>
+      <div class="grid2">
+        <label>Cột tên camp <select class="mName"></select></label>
+        <label>Cột ID camp <select class="mId"></select></label>
+        <label>Cột spend <select class="mSpend"></select></label>
+        <label>Mệnh giá <select class="mCur"><option value="">Tự nhận</option><option>IDR</option><option>VND</option><option>USD</option><option>THB</option><option>PHP</option><option>MYR</option></select></label>
+      </div>
+      <div class="info curInfo"></div>
+    </div>
+  </section>
+  <section>
+    <h2>Lọc camp theo app</h2>
+    <div class="chips"></div>
+    <div class="row"><input type="text" class="addApp short2" placeholder="Thêm mã app (SGT_001)"><button class="btnAddApp">Thêm</button></div>
+    <input type="text" class="freeText" placeholder="Hoặc gõ chữ có trong tên camp (cách nhau dấu phẩy)">
+  </section>
+  <section class="result" hidden></section>
+</div>
+
+<!-- ===== Unity ===== -->
+<div class="panel" id="p-unity" hidden>
+  <section>
+    <h2>Check spend Unity theo giờ</h2>
+    <p class="hint">Xuất báo cáo spend <b>theo giờ</b> từ Unity (CSV/XLSX) rồi nạp vào đây. Spend của ngày D tính từ <b>17:00 ngày D-1</b> đến <b>16:59 ngày D</b>.</p>
+    <div class="drop" data-for="unity">Kéo thả file hoặc <button class="link" data-pick="unity">chọn file</button></div>
+    <details><summary>Hoặc dán bảng</summary>
+      <textarea id="unPaste" rows="3"></textarea><button id="unPasteBtn">Dùng nội dung đã dán</button></details>
+    <div id="unMsg" class="msg"></div>
+    <div id="unMap" hidden>
+      <div class="grid2">
+        <label>Ngày D <input type="date" id="unDate"></label>
+        <label>Giờ bắt đầu <input type="number" id="unStart" value="17" min="0" max="23"></label>
+        <label>Cột thời gian <select id="unDt"></select></label>
+        <label>Cột spend <select id="unSpend"></select></label>
+        <label>Nhóm theo <select id="unGroup"></select></label>
+        <label>Lệch giờ (+/-) <input type="number" id="unShift" value="0" step="1"></label>
+      </div>
+      <p class="hint">Giờ trong file là giờ nào thì cứ để 0. Nếu file xuất theo UTC mà 17h của chị là giờ Việt Nam thì điền +7.</p>
+      <div id="unOut"></div>
+    </div>
+  </section>
+</div>
+
+<!-- Lịch sử & biểu đồ -->
+<section id="histBox" hidden>
+  <h2>Lịch sử ROAS</h2>
+  <label class="block">Camp <select id="histCamp"></select></label>
+  <div id="chart"></div>
+  <div class="row"><span id="histInfo" class="hint"></span><button id="btnClearHist">Xoá lịch sử kênh này</button></div>
+</section>
+
+<input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
+
+<template id="tplResult">
+  <div class="rates"></div>
+  <div class="row"><label class="chk"><input type="checkbox" class="hideZero" checked> Ẩn camp không chi tiêu</label></div>
+  <div class="legend"><i class="good"></i>≥100% <i class="warn"></i>85–99% <i class="bad"></i>&lt;85%</div>
   <div class="cards">
-    <div class="card"><span>Cost (USD)</span><b id="tCost">–</b></div>
-    <div class="card"><span>Revenue (USD)</span><b id="tRev">–</b></div>
-    <div class="card"><span>ROAS tổng</span><b id="tRoas">–</b></div>
+    <div class="card"><span>Cost (USD)</span><b class="tCost">–</b></div>
+    <div class="card"><span>Revenue (USD)</span><b class="tRev">–</b></div>
+    <div class="card"><span>ROAS tổng</span><b class="tRoas">–</b></div>
   </div>
-  <div id="warns"></div>
+  <div class="warns"></div>
   <div class="tablewrap">
-    <table id="tbl">
-      <thead><tr>
-        <th data-k="name">Camp</th>
-        <th data-k="cost" class="num">Cost</th>
-        <th data-k="costUsd" class="num">Cost USD</th>
-        <th data-k="revenueUsd" class="num">Revenue</th>
-        <th data-k="roas" class="num">ROAS</th>
-      </tr></thead>
+    <table class="tbl">
+      <thead><tr><th data-k="name">Camp</th><th data-k="costUsd" class="num">Cost $</th><th data-k="revenueUsd" class="num">Rev $</th><th data-k="roas" class="num">ROAS</th><th data-k="delta" class="num">Δ</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
   <div class="row">
-    <button id="btnXlsx" class="primary">Tải Excel</button>
-    <button id="btnCopy">Copy bảng</button>
-    <span id="actMsg" class="hint"></span>
+    <button class="primary btnSave">Lưu lần check</button>
+    <button class="btnXlsx">Tải Excel</button>
+    <button class="btnCopy">Copy bảng</button>
   </div>
-  <details id="unmatchedBox">
-    <summary>Revenue không khớp camp nào (<span id="unCount">0</span>)</summary>
-    <table id="unTbl"><tbody></tbody></table>
-  </details>
-</section>
+  <div class="hint actMsg"></div>
+  <details class="unBox"><summary>Revenue không khớp camp nào (<span class="unCount">0</span>)</summary>
+    <p class="hint">Có thể là camp của app/tài khoản đang không được chọn.</p>
+    <table class="unTbl"><tbody></tbody></table></details>
+</template>
 
 <script src="lib/read-excel-file.min.js"></script>
 <script src="lib/write-excel-file.min.js"></script>
 <script src="core.js"></script>
 <script src="scraper.js"></script>
+<script src="scraper-table.js"></script>
 <script src="sidepanel.js"></script>
 </body>
 </html>

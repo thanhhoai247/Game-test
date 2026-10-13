@@ -1,13 +1,30 @@
 {
   "manifest_version": 3,
-  "name": "ROAS nhanh",
-  "version": "1.0.0",
-  "description": "Đọc Cost từng camp trên Google Ads, ghép với Revenue xuất từ Adjust và tính ROAS. Chỉ đọc, không sửa gì trong Google Ads.",
+  "name": "Xuất số-multichannel",
+  "version": "2.0.0",
+  "description": "Xuất số Google Ads / TikTok Ads (cost × revenue Adjust → ROAS, lưu lịch sử, biểu đồ) và check spend Unity theo giờ. Chỉ đọc.",
   "minimum_chrome_version": "114",
-  "permissions": ["sidePanel", "scripting", "storage"],
-  "host_permissions": ["https://ads.google.com/*"],
-  "background": { "service_worker": "background.js" },
-  "side_panel": { "default_path": "sidepanel.html" },
-  "action": { "default_title": "ROAS nhanh" },
-  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  "permissions": [
+    "sidePanel",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://ads.google.com/*",
+    "https://marketing.itgproduct.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Xuất số-multichannel"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }
