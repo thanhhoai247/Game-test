@@ -13,7 +13,7 @@
     console.log('%c[MV] Đã cài từ trước. Dùng MV.help()', 'color:#0a0');
     return;
   }
-  const MV = (window.MV = { _installed: true, entries: [], sel: {}, failed: [], cfg: {
+  const MV = (window.MV = { _installed: true, entries: [], sel: {}, pinned: {}, tpls: {}, failed: [], cfg: {
     concurrency: 3,      // số file tải song song
     retries: 3,          // số lần thử lại mỗi file
     zipEvery: 300,       // mỗi file zip chứa tối đa bấy nhiêu chứng từ (x2 file)
@@ -173,18 +173,18 @@
     });
     console.table(rows);
   };
-  MV.use = (role, idx) => { MV.sel[role] = MV.entries[idx]; console.log(`[MV] ${role} = #${idx}`, MV.sel[role].url); };
+  MV.use = (role, idx) => { MV.pinned[role] = true; MV.sel[role] = MV.entries[idx]; console.log(`[MV] ${role} = #${idx}`, MV.sel[role].url); };
   MV.clear = () => { MV.entries.length = 0; MV.sel = {}; console.log('[MV] Đã xóa danh sách request đã ghi.'); };
 
   function autoPick() {
     const E = MV.entries;
     const last = (f) => { for (let i = E.length - 1; i >= 0; i--) if (f(E[i])) return E[i]; return null; };
-    if (!MV.sel.list) {
+    if (!MV.pinned.list) {   // luôn lấy danh sách MỚI NHẤT (sau khi đổi ký hiệu / bấm Tải dữ liệu)
       MV.sel.list = last((e) => { const j = e.kind === 'json' && jparse(e.text); const r = j && findRows(j); return r && r.length >= 2; })
         || last((e) => { const j = e.kind === 'json' && jparse(e.text); return j && findRows(j); });
     }
-    if (!MV.sel.pdf) MV.sel.pdf = last((e) => e.kind === 'pdf' || e.kind === 'pdf-b64');
-    if (!MV.sel.xml) MV.sel.xml = last((e) => e.kind === 'xml' || e.kind === 'xml-b64');
+    if (!MV.pinned.pdf) MV.sel.pdf = last((e) => e.kind === 'pdf' || e.kind === 'pdf-b64') || MV.sel.pdf;
+    if (!MV.pinned.xml) MV.sel.xml = last((e) => e.kind === 'xml' || e.kind === 'xml-b64') || MV.sel.xml;
   }
 
   // ---------------------------------------------------------------- mẫu request (template)
@@ -423,7 +423,9 @@
       const sampleRows = findRows(jparse(s.list.text) || {}) || [];   // dòng mẫu gốc: id của PDF/XML đã ghi nằm trong danh sách gốc
       const tpls = {};
       for (const w of wants) {
-        tpls[w] = buildTemplate(s[w], sampleRows.concat(rows));
+        const c = MV.tpls[w];
+        tpls[w] = (c && c.src === s[w]) ? c.tpl : buildTemplate(s[w], sampleRows.concat(rows));
+        if (tpls[w]) MV.tpls[w] = { src: s[w], tpl: tpls[w] };
         if (!tpls[w]) return console.error(`[MV] Không tìm thấy mã chứng từ nào của danh sách trong request ${w.toUpperCase()}. Có thể bạn đã tải ${w.toUpperCase()} của chứng từ không nằm trong danh sách hiện tại. Bấm "Tải dữ liệu", rồi tải ${w.toUpperCase()} 1 chứng từ trong danh sách đó và chạy lại. Hoặc đặt MV.cfg.idFields.`);
         console.log(`[MV] Mẫu ${w}:`, tpls[w].method, tpls[w].url, tpls[w].body || '', '← trường:', tpls[w].fields.join(','));
       }
