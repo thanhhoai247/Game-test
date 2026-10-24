@@ -1,48 +1,34 @@
-# Unity Creative Pack Builder
+# Unity Creative Pack Builder (Chrome extension)
 
-Tự động tạo **creative pack** trên Unity Ads (cloud.unity.com → Acquire → Creative Library)
-từ các creative bạn **đã tải lên** cho một app. Bạn chọn app; tool đọc danh sách creative, tự ghép
-video dọc + ngang + end card thành pack, cho xem trước rồi mới tạo.
+Extension Chrome tự động tạo **creative pack** trên Unity Ads (cloud.unity.com → Acquire → Creative Library)
+từ các creative bạn **đã tải lên** cho một app.
 
-Chạy lại bao nhiêu lần cũng được: pack nào đã có (cùng bộ creative) sẽ được bỏ qua, nên sau mỗi
-đợt upload creative mới chỉ cần chạy lại là có pack cho creative mới.
+**Không cần API key / Service Account.** Extension dùng chính phiên đăng nhập cloud.unity.com của bạn
+trên Chrome, nên làm được đúng những gì tài khoản của bạn làm được trên dashboard.
 
 ## Cài đặt
 
-Cần **Node.js 18.3+**. Không cần cài thêm thư viện.
+1. Tải thư mục `tools/unity-creative-packs` về máy (hoặc giải nén file `unity-creative-packs.zip`).
+2. Mở Chrome, vào `chrome://extensions`, bật **Developer mode** (góc trên bên phải).
+3. Bấm **Load unpacked** và chọn thư mục `unity-creative-packs` (thư mục chứa `manifest.json`).
+4. Ghim extension lên thanh công cụ (biểu tượng mảnh ghép → ghim *Unity Creative Pack Builder*).
 
-1. **Tạo Service Account** (cần quyền Owner của organization):
-   cloud.unity.com → *Administration* → *Service accounts* → *New* → *Add key*.
-   Ở *Organization roles*, mở mục **User Acquisition / Advertise API** và cấp role có quyền
-   **Creative Packs** (đọc & sửa creative, creative pack).
-2. Copy `.env.example` thành `.env` rồi điền:
-   ```
-   UNITY_KEY_ID=...
-   UNITY_SECRET_KEY=...
-   UNITY_ORG_ID=...   # số trong link: cloud.unity.com/organizations/<ORG_ID>/...
-   ```
-   File `.env` đã nằm trong `.gitignore`, không bị commit.
+Cần Chrome 116 trở lên.
 
 ## Sử dụng
 
-```bash
-cd tools/unity-creative-packs
+1. Mở cloud.unity.com, đăng nhập, vào **Acquire → Creative Library** của app.
+2. Bấm biểu tượng extension: bảng điều khiển mở ở cạnh phải trình duyệt.
+3. Extension tự kết nối, tự chọn app đang mở, tải danh sách creative và hiện **kế hoạch**:
+   những pack sẽ tạo, gồm creative nào.
+4. Chỉnh nếu cần: chọn loại pack, end card mặc định, sửa tên pack, bỏ tick pack không muốn tạo.
+5. Bấm **Tạo N creative pack**.
 
-# Chọn app từ danh sách, xem kế hoạch, xác nhận rồi tạo
-node src/cli.js
+Nếu báo "Chưa bắt được phiên đăng nhập", bấm F5 tải lại trang Unity: extension sẽ tự kết nối.
 
-# Hoặc dán thẳng link Creative Library (tool tự lấy org + app từ link)
-node src/cli.js --app "https://cloud.unity.com/organizations/<ORG_ID>/acquire-v2/creative-library?app=<APP_ID>"
+### Extension ghép creative như thế nào
 
-# Chỉ xem trước, không tạo gì
-node src/cli.js --app <APP_ID> --dry-run
-```
-
-Lần đầu nên chạy `--dry-run` để kiểm tra cách ghép.
-
-### Tool ghép creative như thế nào
-
-Creative được ghép theo **tên**. Tool bỏ phần đuôi file, chữ chỉ hướng màn hình và chữ chỉ loại
+Creative được ghép theo **tên**. Extension bỏ phần đuôi file, chữ chỉ hướng màn hình và chữ chỉ loại
 creative để lấy **tên gốc**:
 
 | Creative | Tên gốc |
@@ -51,69 +37,57 @@ creative để lấy **tên gốc**:
 | `Hook01_16x9.mp4`, `Hook01_landscape.mp4`, `Hook01_L.mp4` | `Hook01` (ngang) |
 | `Hook01_EC.png`, `Hook01_endcard.png` | `Hook01` (end card) |
 
-- **Video pack** (`video`): video dọc + video ngang cùng tên gốc + end card cùng tên gốc.
-  Video không có end card cùng tên sẽ dùng **end card mặc định**: chọn bằng `--endcard`,
-  hoặc tool hỏi bạn chọn; nếu app chỉ có 1 end card thì tự dùng end card đó.
-- **Playable pack** (`playable`): playable dọc + ngang cùng tên gốc, hoặc 1 playable responsive.
-- **Video + playable** (`video+playable`, bật bằng `--types`): video + playable responsive cùng tên
-  gốc hoặc playable mặc định (`--playable`).
-- Nếu một nhóm có 2 video cùng hướng hoặc video không rõ hướng, mỗi video sẽ thành một pack riêng
-  (Unity yêu cầu pack 2 video phải là 1 dọc + 1 ngang).
-- Creative bị từ chối (rejected/failed…), banner và creative không rõ loại được bỏ qua và liệt kê lý do.
+- **Video + end card**: video dọc + video ngang cùng tên gốc + end card cùng tên gốc. Video không có
+  end card cùng tên sẽ dùng **End card mặc định** (app chỉ có 1 end card thì tự dùng end card đó).
+- **Playable**: playable dọc + ngang cùng tên gốc, hoặc 1 playable responsive.
+- **Video + playable**: video + playable cùng tên gốc, hoặc **Playable mặc định**.
+- Nhóm có 2 video cùng hướng (hoặc không rõ hướng) sẽ tách mỗi video một pack,
+  vì Unity yêu cầu pack 2 video phải là 1 dọc + 1 ngang.
+- Pack đã có (cùng bộ creative) được bỏ qua, nên bấm tạo nhiều lần cũng không bị trùng.
+- Creative bị từ chối, banner và creative không rõ loại được bỏ qua, có ghi lý do.
 
-Tên pack mặc định là `{base}_{tag}`, ví dụ `Hook01_EC`, `Puzzle_PL`, `Hook01_VPL`.
-Đổi bằng `--name`, ví dụ `--name "UA_{date}_{base}_{orient}_{tag}"`.
-Biến có thể dùng: `{base}` tên gốc, `{tag}` EC/PL/VPL, `{type}` loại pack, `{orient}` P/L/PL,
-`{endcard}` / `{playable}` tên gốc của end card / playable đi kèm, `{date}` ngày chạy (YYYYMMDD).
-Nếu trùng tên với pack đã có, tool tự thêm `_2`, `_3`…
+Tên pack mặc định là `{base}_{tag}`, ví dụ `Hook01_EC`, `Puzzle_PL`, `Hook01_VPL`. Biến dùng được:
+`{base}` tên gốc, `{tag}` EC/PL/VPL, `{type}` loại pack, `{orient}` P/L/PL, `{endcard}` / `{playable}`
+tên gốc của end card / playable đi kèm, `{date}` ngày tạo (YYYYMMDD).
 
-### Ví dụ
+### Chế độ tự động
 
-```bash
-# Chỉ làm pack cho đợt creative mới, dùng end card "Main_EC" cho video thiếu end card
-node src/cli.js --app <APP_ID> --filter "^Hook1[0-9]" --endcard Main_EC
+Bật **Tự động tạo pack cho app này** trong bảng điều khiển. Từ đó extension tự tạo pack cho creative mới
+theo cài đặt bạn đã chọn cho app đó, mỗi khi:
 
-# Tạo cả 3 loại pack, không hỏi xác nhận (dùng được trong script / cron)
-node src/cli.js --app <APP_ID> --types all --playable Puzzle_playable --yes
+- bạn mở Creative Library của app,
+- bạn vừa tải creative lên (khoảng 15 giây sau),
+- và cứ 15 phút một lần khi trang Unity còn mở.
 
-# Muốn chỉnh tay: lưu kế hoạch ra file, sửa tên/ghép lại, rồi tạo theo file
-node src/cli.js --app <APP_ID> --save-plan plan.json
-node src/cli.js --app <APP_ID> --from-plan plan.json
-```
+Mỗi lần tối đa 20 pack; bạn nhận thông báo của Chrome khi có pack mới hoặc khi gặp lỗi. Pack nào bạn đã bỏ tick
+trong bảng điều khiển thì chế độ tự động cũng không tạo. Chế độ tự động chỉ chạy khi Chrome đang mở và bạn
+còn đăng nhập Unity.
 
-### Tất cả tuỳ chọn
+## Khi gặp lỗi
 
-| Tuỳ chọn | Ý nghĩa |
-|---|---|
-| `--app <id\|link>` | App ID (UUID) hoặc link Creative Library. Bỏ trống để chọn từ danh sách |
-| `--org <id>` | Organization ID (mặc định lấy từ `.env` hoặc từ link) |
-| `--types <list>` | `video`, `playable`, `video+playable` hoặc `all`. Mặc định `video,playable` |
-| `--endcard <id\|tên>` | End card mặc định |
-| `--playable <id\|tên>` | Playable mặc định cho pack video+playable |
-| `--filter <regex>` | Chỉ dùng video/playable có tên khớp (không áp dụng cho end card) |
-| `--name <mẫu>` | Mẫu đặt tên pack |
-| `--dry-run` | Chỉ xem kế hoạch |
-| `--yes`, `-y` | Không hỏi xác nhận |
-| `--save-plan <file>` / `--from-plan <file>` | Lưu kế hoạch ra JSON / tạo theo file JSON |
-| `--list-apps` | Liệt kê app trong organization |
-| `--dump` | In dữ liệu thô của creative (để kiểm tra khi tool nhận sai loại/hướng) |
+- **"Unity không nhận phiên đăng nhập cho API"**: tài khoản cần quyền User Acquisition trong organization.
+  Nếu bạn đã có quyền mà vẫn lỗi, mở mục **Chẩn đoán**, bấm **Copy chẩn đoán** rồi gửi nội dung đó.
+  Nội dung chẩn đoán **không chứa token**, chỉ có danh sách địa chỉ API mà dashboard gọi, để chỉnh extension cho khớp.
+- **Nhận sai loại / hướng creative**: đặt lại tên creative theo bảng ở trên, hoặc sửa tay trong kế hoạch.
 
-## Lưu ý
+## Quyền riêng tư & quyền của extension
 
-- Tool dùng **Ads Unified Platform Advertiser API** (`services.api.unity.com/ads/advertiser/public/v1`),
-  là API của dashboard mới (link `acquire-v2`, app ID dạng UUID). Organization còn dùng
-  Advertise API cũ (app ID 24 ký tự hex) thì không dùng được tool này.
-- Tool đọc loại và hướng của creative từ nhiều trường khác nhau (type, orientation, kích thước, tên file).
-  Nếu tool nhận sai, chạy `--dump` để xem dữ liệu thô rồi đặt lại tên creative theo bảng trên,
-  hoặc sửa file kế hoạch (`--save-plan`).
-- Tool **chỉ tạo pack**, không gán pack vào campaign.
-- Gặp giới hạn tốc độ (HTTP 429), tool tự đợi rồi thử lại. Nếu tạo pack bị lỗi giữa chừng,
-  cứ chạy lại: pack đã tạo sẽ được bỏ qua.
+- Extension đọc header `Authorization` mà dashboard Unity gửi đi (chỉ đọc, không sửa request nào),
+  lưu trong bộ nhớ tạm của Chrome (`chrome.storage.session`, tự xoá khi đóng Chrome) và chỉ gửi nó tới
+  các địa chỉ `*.unity.com`. Không có dữ liệu nào gửi đi nơi khác.
+- Quyền xin cấp: truy cập `*.unity.com` / `*.unity3d.com` (đọc phiên đăng nhập, gọi API), `webRequest`
+  (thấy request của dashboard), `storage` (lưu cài đặt), `sidePanel`, `alarms` (chạy tự động định kỳ),
+  `notifications` (báo khi tạo xong).
+- Extension dùng **Ads Unified Platform Advertiser API** của Unity
+  (`services.api.unity.com/ads/advertiser/public/v1`), API của dashboard mới (link `acquire-v2`).
+- Extension **chỉ tạo pack**, không gán pack vào campaign.
 
-## Kiểm thử
+## Phát triển
 
 ```bash
-npm test
+npm test   # test logic ghép pack, API client, kết nối (Node 18+)
 ```
 
-Test chạy với một server Unity giả lập trên máy, không gọi API thật.
+Cấu trúc: `src/planner.js` (ghép creative thành pack), `src/unity-api.js` (gọi API),
+`src/runner.js` (kết nối, lập kế hoạch, tạo pack), `src/background.js` (bắt phiên đăng nhập, chế độ tự động),
+`src/content/` (script chạy trong trang Unity), `src/panel/` (bảng điều khiển).

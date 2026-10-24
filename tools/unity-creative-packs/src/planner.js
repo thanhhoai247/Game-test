@@ -200,6 +200,23 @@ export function packCreativeIds(pack) {
 }
 
 const signature = (ids) => [...ids].map(String).sort().join(',');
+export const packSignature = (pack) => signature(pack.creativeIds);
+
+// Looks up a pack among the existing ones by its set of creatives, or by name
+// for packs the API listed without their creatives.
+export function indexExistingPacks(existingPacks) {
+  const bySignature = new Map();
+  const byNameOnly = new Map();
+  for (const p of existingPacks) {
+    const ids = packCreativeIds(p);
+    if (ids.length) bySignature.set(signature(ids), p);
+    else if (str(p.name)) byNameOnly.set(str(p.name).toLowerCase(), p);
+  }
+  return {
+    find: (creativeIds, name) => bySignature.get(signature(creativeIds)) || byNameOnly.get(String(name ?? '').toLowerCase()) || null,
+    names: new Set(existingPacks.map((p) => str(p.name).toLowerCase()).filter(Boolean)),
+  };
+}
 
 // ---------- lookup ----------
 
@@ -343,12 +360,12 @@ export function buildPlan({
       if (types.includes('video')) {
         const endcard = pickCompanion(unit, endcards, defaultEndcard);
         if (endcard) packs.push(makePack('video', unit, endcard));
-        else skipped.push({ name: unitLabel(unit), code: 'no-endcard', reason: 'không có end card cùng tên và chưa chọn end card mặc định (--endcard)' });
+        else skipped.push({ name: unitLabel(unit), code: 'no-endcard', reason: 'không có end card cùng tên — hãy chọn End card mặc định' });
       }
       if (types.includes('video+playable')) {
         const playable = pickCompanion(unit, responsivePlayables, defaultPlayable);
         if (playable) packs.push(makePack('video+playable', unit, playable));
-        else skipped.push({ name: unitLabel(unit), code: 'no-playable', reason: 'không có playable cùng tên và chưa chọn playable mặc định (--playable)' });
+        else skipped.push({ name: unitLabel(unit), code: 'no-playable', reason: 'không có playable cùng tên — hãy chọn Playable mặc định' });
       }
     }
   }
@@ -356,22 +373,15 @@ export function buildPlan({
     for (const unit of buildUnits(primary('playable'))) packs.push(makePack('playable', unit));
   }
 
-  const existingBySignature = new Map();
-  // Packs listed without their creatives can only be recognised by name.
-  const existingByNameOnly = new Map();
-  for (const p of existingPacks) {
-    const ids = packCreativeIds(p);
-    if (ids.length) existingBySignature.set(signature(ids), p);
-    else if (str(p.name)) existingByNameOnly.set(str(p.name).toLowerCase(), p);
-  }
-  const usedNames = new Set(existingPacks.map((p) => str(p.name).toLowerCase()).filter(Boolean));
+  const index = indexExistingPacks(existingPacks);
+  const usedNames = new Set(index.names);
   const planned = new Set();
   const toCreate = [];
   const existing = [];
   for (const pack of packs) {
     const sig = signature(pack.creativeIds);
     const name = renderName(nameTemplate, pack);
-    const match = existingBySignature.get(sig) || existingByNameOnly.get(name.toLowerCase());
+    const match = index.find(pack.creativeIds, name);
     if (match) {
       existing.push({ ...pack, name: str(match.name) || '(không tên)' });
       continue;

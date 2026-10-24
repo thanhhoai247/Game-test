@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creative Pack Builder</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header>
+    <h1>Creative Pack Builder</h1>
+    <p id="status" class="status">Đang kiểm tra phiên đăng nhập…</p>
+  </header>
+
+  <section id="app-section" hidden>
+    <label>App
+      <select id="app"></select>
+    </label>
+    <p id="org" class="hint"></p>
+  </section>
+
+  <section id="settings" hidden>
+    <fieldset>
+      <legend>Loại pack</legend>
+      <label class="inline"><input type="checkbox" name="type" value="video"> Video + end card</label>
+      <label class="inline"><input type="checkbox" name="type" value="playable"> Playable</label>
+      <label class="inline"><input type="checkbox" name="type" value="video+playable"> Video + playable</label>
+    </fieldset>
+    <label>End card mặc định
+      <select id="endcard"></select>
+    </label>
+    <label>Playable mặc định (cho video + playable)
+      <select id="playable"></select>
+    </label>
+    <label>Chỉ dùng creative có tên khớp (regex)
+      <input id="filter" placeholder="vd: ^Hook1[0-9]" spellcheck="false">
+    </label>
+    <label>Mẫu tên pack
+      <input id="nameTemplate" spellcheck="false">
+    </label>
+    <p class="hint">Biến: {base} {tag} {type} {orient} {endcard} {playable} {date}</p>
+  </section>
+
+  <section id="plan-section" hidden>
+    <div class="row">
+      <h2 id="plan-title">Kế hoạch</h2>
+      <button id="reload" type="button" title="Tải lại creative từ Unity">Tải lại</button>
+    </div>
+    <ul id="warnings" class="warnings"></ul>
+    <ol id="plan" class="plan"></ol>
+    <details id="existing-box"><summary></summary><ul id="existing" class="small"></ul></details>
+    <details id="skipped-box"><summary></summary><ul id="skipped" class="small"></ul></details>
+    <button id="create" type="button" class="primary"></button>
+    <ol id="progress" class="progress"></ol>
+  </section>
+
+  <section id="auto-section" hidden>
+    <label class="inline switch"><input type="checkbox" id="auto"> Tự động tạo pack cho app này</label>
+    <p class="hint">Khi bật, extension tự tạo pack cho creative mới (theo cài đặt ở trên) khi bạn mở
+      Creative Library, sau khi bạn tải creative lên, và cứ 15 phút một lần khi trang Unity đang mở.
+      Tối đa 20 pack mỗi lần; bạn sẽ nhận thông báo khi có pack mới.</p>
+    <p id="auto-check" class="hint"></p>
+    <ul id="auto-log" class="small"></ul>
+  </section>
+
+  <details id="diag">
+    <summary>Chẩn đoán</summary>
+    <label>API base
+      <input id="apiBase" spellcheck="false">
+    </label>
+    <pre id="diag-text"></pre>
+    <button id="copy-diag" type="button">Copy chẩn đoán</button>
+  </details>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

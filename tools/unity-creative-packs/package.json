@@ -1,14 +1,10 @@
 {
   "name": "unity-creative-packs",
-  "version": "1.0.0",
-  "description": "Tự động tạo creative pack từ các creative đã tải lên Unity Ads (Acquire) cho một app.",
+  "version": "2.0.0",
+  "description": "Chrome extension tự động tạo creative pack trên Unity Ads từ các creative đã tải lên, dùng phiên đăng nhập cloud.unity.com.",
   "type": "module",
   "private": true,
-  "bin": {
-    "unity-creative-packs": "src/cli.js"
-  },
   "scripts": {
-    "start": "node src/cli.js",
     "test": "node --test"
   },
   "engines": {

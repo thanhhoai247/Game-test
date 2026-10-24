@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Unity Creative Pack Builder",
+  "version": "2.0.0",
+  "description": "Tự động tạo creative pack trên Unity Ads từ các creative đã tải lên, dùng phiên đăng nhập cloud.unity.com của bạn.",
+  "minimum_chrome_version": "116",
+  "permissions": ["storage", "sidePanel", "webRequest", "alarms", "notifications"],
+  "host_permissions": ["https://*.unity.com/*", "https://*.unity3d.com/*"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://cloud.unity.com/*"],
+      "js": ["src/content/hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://cloud.unity.com/*"],
+      "js": ["src/content/relay.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "side_panel": {
+    "default_path": "src/panel/panel.html"
+  },
+  "action": {
+    "default_title": "Creative Pack Builder",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

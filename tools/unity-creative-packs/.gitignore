@@ -1,3 +1,2 @@
-.env
-plan*.json
 node_modules/
+*.zip

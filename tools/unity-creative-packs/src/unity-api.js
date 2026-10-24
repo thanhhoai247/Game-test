@@ -1,6 +1,9 @@
 // Minimal client for the Unity Ads Unified Platform Advertiser API
 // (the API behind cloud.unity.com → Acquire, where app IDs are UUIDs).
 // Docs: https://docs.unity.com/en-us/oas-unified-platform-advertiser-public/1.0.0
+//
+// Requests carry the Authorization header the dashboard itself sends, so they
+// run with the signed-in user's own permissions.
 
 export const DEFAULT_BASE_URL = 'https://services.api.unity.com/ads/advertiser/public/v1';
 
@@ -46,20 +49,18 @@ function describeBody(body) {
 }
 
 export function createClient({
-  keyId,
-  secretKey,
+  authorization,
   orgId,
   baseUrl = DEFAULT_BASE_URL,
-  fetchImpl = globalThis.fetch,
+  fetchImpl = (...args) => globalThis.fetch(...args),
   maxRetries = 5,
   retryBaseMs = 1000,
   pageSize = 100,
   log = () => {},
 }) {
-  if (!keyId || !secretKey) throw new Error('Thiếu UNITY_KEY_ID / UNITY_SECRET_KEY (service account).');
-  if (!orgId) throw new Error('Thiếu organization ID (UNITY_ORG_ID hoặc --org).');
+  if (!authorization) throw new Error('Chưa có phiên đăng nhập Unity.');
+  if (!orgId) throw new Error('Thiếu organization ID.');
 
-  const authorization = 'Basic ' + Buffer.from(`${keyId}:${secretKey}`).toString('base64');
   const orgUrl = `${baseUrl.replace(/\/+$/, '')}/organizations/${encodeURIComponent(orgId)}`;
 
   async function request(method, path, body) {

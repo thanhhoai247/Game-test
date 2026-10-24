@@ -12,7 +12,7 @@ function mockFetch(responder) {
   return { calls, fetchImpl };
 }
 
-const base = { keyId: 'key', secretKey: 'secret', orgId: '123', baseUrl: 'https://api.test/v1', retryBaseMs: 1 };
+const base = { authorization: 'Bearer user-token', orgId: '123', baseUrl: 'https://api.test/v1', retryBaseMs: 1 };
 
 test('extractList accepts bare arrays and common envelopes', () => {
   assert.deepEqual(extractList([1]), [1]);
@@ -22,7 +22,7 @@ test('extractList accepts bare arrays and common envelopes', () => {
   assert.throws(() => extractList({ a: 1 }));
 });
 
-test('sends basic auth and walks every page', async () => {
+test('sends the captured Authorization header and walks every page', async () => {
   const items = Array.from({ length: 5 }, (_, i) => ({ id: `c${i}` }));
   const { calls, fetchImpl } = mockFetch((url) => {
     const offset = Number(new URL(url).searchParams.get('offset'));
@@ -32,7 +32,7 @@ test('sends basic auth and walks every page', async () => {
   const creatives = await client.listCreatives('app-1');
   assert.deepEqual(creatives.map((c) => c.id), ['c0', 'c1', 'c2', 'c3', 'c4']);
   assert.equal(calls[0].url, 'https://api.test/v1/organizations/123/applications/app-1/creatives?limit=2&offset=0');
-  assert.equal(calls[0].headers.Authorization, 'Basic ' + Buffer.from('key:secret').toString('base64'));
+  assert.equal(calls[0].headers.Authorization, 'Bearer user-token');
 });
 
 test('stops paging when the endpoint ignores offset', async () => {

@@ -16,5 +16,5 @@ Chạy thử trên máy tính: `npx http-server .` rồi mở trang bằng trìn
 Luật chơi nằm trong `rules.js`, có thể sửa để tạo màn mới.
 
 ## Công cụ khác
-- [`tools/unity-creative-packs`](tools/unity-creative-packs/README.md): tự động tạo creative pack
-  trên Unity Ads từ các creative đã tải lên cho một app.
+- [`tools/unity-creative-packs`](tools/unity-creative-packs/README.md): extension Chrome tự động tạo
+  creative pack trên Unity Ads từ các creative đã tải lên cho một app.
