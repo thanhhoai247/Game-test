@@ -14,3 +14,7 @@ Chạy thử trên máy tính: `npx http-server .` rồi mở trang bằng trìn
 ## Kiểm tra màn chơi
 `node solve.js` xác nhận màn chơi thắng được và in một lời giải mẫu.
 Luật chơi nằm trong `rules.js`, có thể sửa để tạo màn mới.
+
+## Công cụ khác
+- [`tools/unity-creative-packs`](tools/unity-creative-packs/README.md): tự động tạo creative pack
+  trên Unity Ads từ các creative đã tải lên cho một app.

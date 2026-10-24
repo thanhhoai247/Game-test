@@ -1,0 +1,17 @@
+{
+  "name": "unity-creative-packs",
+  "version": "1.0.0",
+  "description": "Tự động tạo creative pack từ các creative đã tải lên Unity Ads (Acquire) cho một app.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "unity-creative-packs": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18.3"
+  }
+}
